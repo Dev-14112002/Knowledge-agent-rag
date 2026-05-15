@@ -25,11 +25,20 @@ with st.sidebar:
 
     if uploaded_file and not st.session_state.uploaded:
 
-        files = {"file": uploaded_file}
+        files = {
+            "file": (
+                uploaded_file.name,
+                uploaded_file.getvalue(),
+                "application/pdf",
+            )
+        }
 
         with st.spinner("Uploading and indexing PDF..."):
 
             response = requests.post(f"{API_URL}/upload", files=files)
+
+        st.write(response.status_code)
+        st.write(response.text)
 
         if response.status_code == 200:
 
