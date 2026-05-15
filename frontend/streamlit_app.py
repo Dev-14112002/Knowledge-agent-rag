@@ -5,6 +5,8 @@ import requests
 
 API_URL = "https://knowledge-agent-rag.onrender.com/"
 
+st.write(API_URL)
+
 st.set_page_config(page_title="AI Research Assistant", page_icon="📚", layout="wide")
 
 # =========================
