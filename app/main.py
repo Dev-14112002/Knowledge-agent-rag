@@ -47,6 +47,18 @@ def query_docs(request: QueryRequest):
 
     qa_chain = create_qa_chain()
 
-    response = qa_chain.invoke({"query": request.question})
+    response = qa_chain.invoke({"question": request.question, "chat_history": []})
 
-    return {"answer": response["result"]}
+    sources = []
+
+    for doc in response["source_documents"]:
+
+        sources.append(
+            {
+                "source": doc.metadata.get("source", "Unknown"),
+                "page": doc.metadata.get("page", "N/A"),
+                "content": doc.page_content[:300],
+            }
+        )
+
+    return {"answer": response["answer"], "sources": sources}
