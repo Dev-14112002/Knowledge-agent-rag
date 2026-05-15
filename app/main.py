@@ -5,6 +5,7 @@ import os
 from app.ingest import load_and_split_pdf
 from app.rag import create_vector_store
 from pydantic import BaseModel
+from typing import List
 from app.rag import create_qa_chain
 
 app = FastAPI()
@@ -16,7 +17,10 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 class QueryRequest(BaseModel):
+
     question: str
+
+    chat_history: List[list] = []
 
 
 @app.get("/")
@@ -47,7 +51,11 @@ def query_docs(request: QueryRequest):
 
     qa_chain = create_qa_chain()
 
-    response = qa_chain.invoke({"question": request.question, "chat_history": []})
+    formatted_history = [tuple(chat) for chat in request.chat_history]
+
+    response = qa_chain.invoke(
+        {"question": request.question, "chat_history": formatted_history}
+    )
 
     sources = []
 

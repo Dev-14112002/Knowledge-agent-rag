@@ -11,13 +11,16 @@ st.set_page_config(page_title="AI Research Assistant", page_icon="📚", layout=
 # SIDEBAR
 # =========================
 
+if "uploaded" not in st.session_state:
+    st.session_state.uploaded = False
+
 with st.sidebar:
 
     st.title("📂 Upload Documents")
 
     uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
 
-    if uploaded_file:
+    if uploaded_file and not st.session_state.uploaded:
 
         files = {"file": uploaded_file}
 
@@ -28,6 +31,8 @@ with st.sidebar:
         if response.status_code == 200:
 
             st.success(response.json()["message"])
+
+            st.session_state.uploaded = True
 
         else:
 
@@ -65,6 +70,9 @@ if "messages" not in st.session_state:
 
     st.session_state.messages = []
 
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
 # =========================
 # DISPLAY OLD MESSAGES
 # =========================
@@ -81,10 +89,6 @@ for message in st.session_state.messages:
 
 question = st.chat_input("Ask something about the uploaded document...")
 
-# =========================
-# HANDLE USER QUESTION
-# =========================
-
 if question:
 
     # USER MESSAGE
@@ -95,41 +99,63 @@ if question:
 
         st.markdown(question)
 
-    # AI RESPONSE
+    # ASSISTANT MESSAGE
 
     with st.chat_message("assistant"):
 
         with st.spinner("Researching documents..."):
 
-            response = requests.post(f"{API_URL}/query", json={"question": question})
+            response = requests.post(
+                f"{API_URL}/query",
+                json={
+                    "question": question,
+                    "chat_history": st.session_state.chat_history,
+                },
+            )
 
             data = response.json()
 
             answer = data["answer"]
-
             sources = data.get("sources", [])
 
-            st.markdown(answer)
+            import time
 
-            # DISPLAY SOURCES
+            response_placeholder = st.empty()
 
-            if sources:
+            full_response = ""
 
-                st.markdown("---")
-                st.markdown("## 📚 Source References")
+            chunks = answer.split("\n")
 
-                for idx, source in enumerate(sources, start=1):
+            for chunk in chunks:
 
-                    with st.expander(f"Source {idx}"):
+                full_response += chunk + "\n"
 
-                        st.markdown(f"**Document:** {source['source']}")
+                response_placeholder.markdown(full_response + "▌")
 
-                        st.markdown(f"**Page:** {source['page']}")
+                time.sleep(0.08)
 
-                        st.markdown("**Retrieved Context:**")
+            response_placeholder.markdown(full_response)
 
-                        st.write(source["content"])
+        # DISPLAY SOURCES
+
+        if sources:
+
+            st.markdown("---")
+            st.markdown("## 📚 Source References")
+
+            for idx, source in enumerate(sources, start=1):
+
+                with st.expander(f"Source {idx}"):
+
+                    st.markdown(f"**Document:** {source['source']}")
+
+                    st.markdown(f"**Page:** {source['page']}")
+
+                    st.markdown("**Retrieved Context:**")
+
+                    st.write(source["content"])
 
     # SAVE ASSISTANT MESSAGE
 
     st.session_state.messages.append({"role": "assistant", "content": answer})
+    st.session_state.chat_history.append((question, answer))
