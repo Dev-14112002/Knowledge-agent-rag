@@ -48,7 +48,7 @@ with st.sidebar:
 
         else:
 
-            st.error(response.text)
+            st.error("Upload failed. Please try again.")
 
 
 # =========================
