@@ -31,19 +31,28 @@ def home():
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
 
-    file_path = f"{UPLOAD_DIR}/{file.filename}"
+    try:
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        os.makedirs("uploads", exist_ok=True)
+        os.makedirs("chroma_db", exist_ok=True)
 
-    chunks = load_and_split_pdf(file_path)
+        file_path = f"{UPLOAD_DIR}/{file.filename}"
 
-    create_vector_store(chunks)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    return {
-        "message": f"{file.filename} uploaded successfully",
-        "chunks_created": len(chunks),
-    }
+        chunks = load_and_split_pdf(file_path)
+
+        create_vector_store(chunks)
+
+        return {
+            "message": f"{file.filename} uploaded successfully",
+            "chunks_created": len(chunks),
+        }
+
+    except Exception as e:
+
+        return {"error": str(e)}
 
 
 @app.post("/query")
