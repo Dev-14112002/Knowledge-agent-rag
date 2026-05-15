@@ -4,8 +4,11 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from dotenv import load_dotenv
 from langchain.prompts import PromptTemplate
+import os
 
 load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 embedding_model = OpenAIEmbeddings()
 
