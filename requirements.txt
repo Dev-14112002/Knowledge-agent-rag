@@ -1,5 +1,4 @@
 fastapi
-python-3.11.9
 uvicorn
 streamlit
 langchain==0.2.16
