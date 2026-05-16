@@ -4,7 +4,7 @@ import streamlit as st
 import requests
 
 API_URL = "https://knowledge-agent-rag.onrender.com"
-st.write(f"{API_URL}/upload")
+# st.write(f"{API_URL}/upload")
 
 st.write(API_URL)
 
